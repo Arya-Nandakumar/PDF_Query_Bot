@@ -1,4 +1,6 @@
 # views.py
+import logging
+
 from PyPDF2 import PdfReader
 from django.http import HttpResponse, JsonResponse
 from rest_framework.views import APIView
@@ -128,6 +130,10 @@ class FileUploadView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class ChatBotView(APIView):
 
+    def __init__(self, *args, **kwargs):
+        super(ChatBotView, self).__init__(*args, **kwargs)
+        self.file_upload_view = FileUploadView()
+
     def post(self, request):
         user_input = request.data.get('user_input')
         session_id = request.data.get('session_id')
@@ -148,16 +154,16 @@ class ChatBotView(APIView):
                 messages.extend(user_message.text)
 
                 # Process user input and get bot response
-                bot_response = self.process_user_query(user_input)
-                bot_message = MessagesHistory.objects.get_or_create(
+                bot_response = self.process_user_query(user_input, session_id)
+                bot_message, created = MessagesHistory.objects.get_or_create(
                     session_id=session_id,
-                    content=bot_response,
+                    defaults={'text': []},
                 )
 
                 bot_message.text.append({'sender': 'bot', 'content': bot_response})
                 bot_message.save()
-                messages.extend(bot_message.text)
 
+                messages.extend(bot_message.text)
 
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -165,19 +171,31 @@ class ChatBotView(APIView):
         return Response({'messages': messages}, status=status.HTTP_201_CREATED)
 
     def process_user_query(self, user_input, session_id):
-        msg_history = MessagesHistory.objects.filter(session_id=session_id)
+        try:
+            vectordb = self.file_upload_view.vector_store([])
+            conversation_chain = self.file_upload_view.get_conversation_chain(vectordb)
 
-        msg_history_list = [{'role': message.sender, 'content': message.content} for message in msg_history]
-        msg_history_list.append({'role': 'user', 'content': user_input})
+            msg_history = MessagesHistory.objects.filter(session_id=session_id)
 
-        result = self.conversation_chain({"question": user_input, "chat_history": msg_history_list})
-        msg_history_list.append({'role': 'assistant', 'content': result["answer"]})
+            msg_history_list = [{'role': message.sender, 'content': message.content} for message in msg_history]
+            msg_history_list.append({'role': 'user', 'content': user_input})
 
-        # MessagesHistory.objects.filter(session_id=session_id).delete()
-        for message in msg_history_list:
-            MessagesHistory.objects.create(sender=message['role'], content=message['content'], session_id=session_id)
+            result = conversation_chain({"question": user_input, "chat_history": msg_history_list})
+            msg_history_list.append({'role': 'assistant', 'content': result["answer"]})
 
-        return result["answer"]
+            for message in msg_history_list:
+                MessagesHistory.objects.create(sender=message['role'], content=message['content'],
+                                               session_id=session_id)
+
+            # Print or log the bot response
+            if result["answer"]:
+                print("Bot Response:", result["answer"])
+                # Alternatively, use logging library
+                logging.info("Bot Response: %s", result["answer"])
+
+            return result["answer"]
+        except Exception as e:
+            logging.error("Error in process_user_query: %s", e)
 
 
 
