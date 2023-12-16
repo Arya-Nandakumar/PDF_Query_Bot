@@ -1,0 +1,85 @@
+/* .homie {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.file-upload {
+  position: absolute;
+  top: 35%;
+  left: 450px;
+  width: 40%;
+  text-align: center;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border: 2px dashed #36b7c0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border 0.3s ease-in-out;
+}
+
+.file-upload:hover {
+  border: 2px dashed #2c676c;
+}
+
+.file-upload h3 {
+  font-size: 18px;
+  color: #333;
+  margin: 10px 0;
+}
+
+.file-upload input[type="file"] {
+  display: none;
+}
+
+.file-upload label {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #36b7c0;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.file-upload label:hover {
+  background-color: #2c676c;
+}
+
+
+
+.chat-box {
+  width: 100%;
+  max-width: calc(100%);
+  padding: 20px;
+  padding-left: 300px;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
+.textarea {
+  width: 70%;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  box-sizing: border-box;
+  resize: none;
+  position: relative;
+  bottom: 0;
+}
+
+.chat{
+  padding-right: 150px;
+}
+
+.send{
+  height: 40px;
+  margin-left: 5px;
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+}
+ */
